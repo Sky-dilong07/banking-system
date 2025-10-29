@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🏦 Banking Management System</title>
+    <style>
+        body {
+          font-family: "Segoe UI", sans-serif;
+          background: linear-gradient(120deg, #0a0f33, #1a237e);
+          color: #fff;
+          margin: 0;
+          padding: 0;
+        }
+
+        h1 {
+          text-align: center;
+          padding: 20px;
+          color: #64b5f6;
+        }
+
+        .container {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          padding: 20px;
+        }
+
+        .card {
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+          transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+          transform: scale(1.03);
+        }
+
+        .card h2 {
+          color: #90caf9;
+          margin-bottom: 10px;
+        }
+
+        input {
+          width: 100%;
+          padding: 8px;
+          margin: 6px 0;
+          border: none;
+          border-radius: 8px;
+        }
+
+        button {
+          width: 100%;
+          padding: 10px;
+          background-color: #64b5f6;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        button:hover {
+          background-color: #2196f3;
+        }
+
+        .message {
+          margin-top: 10px;
+          text-align: center;
+          padding: 8px;
+          border-radius: 6px;
+        }
+
+        .success {
+          background-color: #2e7d32;
+        }
+
+        .error {
+          background-color: #c62828;
+        }
+    </style>
+</head>
+<body>
+<h1>🏦 Banking Management System</h1>
+
+<div class="container">
+    <!-- Add Customer -->
+    <div class="card">
+        <h2>Add Customer</h2>
+        <input type="text" id="custName" placeholder="Name" />
+        <input type="email" id="custEmail" placeholder="Email" />
+        <input type="text" id="custPhone" placeholder="Phone" />
+        <button onclick="addCustomer()">Add Customer</button>
+        <div id="customerMsg" class="message"></div>
+    </div>
+
+    <!-- Create Account -->
+    <div class="card">
+        <h2>Create Account</h2>
+        <input type="number" id="custId" placeholder="Customer ID" />
+        <input type="text" id="accType" placeholder="Account Type (e.g. Saving)" />
+        <input type="text" id="accNumber" placeholder="Account Number" />
+        <button onclick="createAccount()">Create Account</button>
+        <div id="accountMsg" class="message"></div>
+    </div>
+
+    <!-- Deposit -->
+    <div class="card">
+        <h2>Deposit</h2>
+        <input type="text" id="depAccNo" placeholder="Account Number" />
+        <input type="number" id="depAmount" placeholder="Amount" />
+        <button onclick="deposit()">Deposit</button>
+        <div id="depositMsg" class="message"></div>
+    </div>
+
+    <!-- Withdraw -->
+    <div class="card">
+        <h2>Withdraw</h2>
+        <input type="text" id="withAccNo" placeholder="Account Number" />
+        <input type="number" id="withAmount" placeholder="Amount" />
+        <button onclick="withdraw()">Withdraw</button>
+        <div id="withdrawMsg" class="message"></div>
+    </div>
+
+    <!-- Transfer -->
+    <div class="card">
+        <h2>Transfer</h2>
+        <input type="text" id="fromAcc" placeholder="From Account" />
+        <input type="text" id="toAcc" placeholder="To Account" />
+        <input type="number" id="transferAmt" placeholder="Amount" />
+        <button onclick="transfer()">Transfer</button>
+        <div id="transferMsg" class="message"></div>
+    </div>
+
+    <!-- View Account -->
+    <div class="card">
+        <h2>View Account</h2>
+        <input type="text" id="viewAccNo" placeholder="Account Number" />
+        <button onclick="viewAccount()">View Details</button>
+        <div id="viewAccountMsg" class="message"></div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = "http://localhost:8081/api";
+
+    function showMessage(elementId, text, success = true) {
+      const msgDiv = document.getElementById(elementId);
+      msgDiv.textContent = text;
+      msgDiv.className = `message ${success ? "success" : "error"}`;
+      setTimeout(() => (msgDiv.textContent = ""), 3000);
+    }
+
+    async function addCustomer() {
+      const name = document.getElementById("custName").value.trim();
+      const email = document.getElementById("custEmail").value.trim();
+      const phone = document.getElementById("custPhone").value.trim();
+
+      if (!name || !email || !phone) {
+        showMessage("customerMsg", "Please fill all fields!", false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BASE_URL}/customers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, phone }),
+        });
+
+        if (!res.ok) throw new Error("Failed to add customer");
+        const data = await res.json();
+
+        showMessage("customerMsg", `Customer added successfully! ID: ${data.id}`);
+        document.getElementById("custId").value = data.id; // Auto-fill ID
+      } catch (err) {
+        showMessage("customerMsg", "❌ Error adding customer!", false);
+      }
+    }
+
+    async function createAccount() {
+      const customerId = document.getElementById("custId").value.trim();
+      const accountType = document.getElementById("accType").value.trim();
+      const accountNumber = document.getElementById("accNumber").value.trim();
+
+      if (!customerId || !accountType || !accountNumber) {
+        showMessage("accountMsg", "Please fill all fields!", false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BASE_URL}/accounts/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customerId, accountType, accountNumber }),
+        });
+
+        if (!res.ok) throw new Error("Failed to create account");
+        const data = await res.json();
+        showMessage("accountMsg", `Account created! Number: ${data.accountNumber}`);
+      } catch (err) {
+        showMessage("accountMsg", "❌ Account creation failed!", false);
+      }
+    }
+
+    async function deposit() {
+      const accountNumber = document.getElementById("depAccNo").value.trim();
+      const amount = document.getElementById("depAmount").value.trim();
+      try {
+        const res = await fetch(`${BASE_URL}/accounts/deposit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accountNumber, amount }),
+        });
+        const data = await res.text();
+        showMessage("depositMsg", data);
+      } catch {
+        showMessage("depositMsg", "Deposit failed!", false);
+      }
+    }
+
+    async function withdraw() {
+      const accountNumber = document.getElementById("withAccNo").value.trim();
+      const amount = document.getElementById("withAmount").value.trim();
+      try {
+        const res = await fetch(`${BASE_URL}/accounts/withdraw`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accountNumber, amount }),
+        });
+        const data = await res.text();
+        showMessage("withdrawMsg", data);
+      } catch {
+        showMessage("withdrawMsg", "Withdrawal failed!", false);
+      }
+    }
+
+    async function transfer() {
+      const fromAccount = document.getElementById("fromAcc").value.trim();
+      const toAccount = document.getElementById("toAcc").value.trim();
+      const amount = document.getElementById("transferAmt").value.trim();
+      try {
+        const res = await fetch(`${BASE_URL}/accounts/transfer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fromAccount, toAccount, amount }),
+        });
+        const data = await res.text();
+        showMessage("transferMsg", data);
+      } catch {
+        showMessage("transferMsg", "Transfer failed!", false);
+      }
+    }
+
+    async function viewAccount() {
+      const accNum = document.getElementById("viewAccNo").value.trim();
+      try {
+        const res = await fetch(`${BASE_URL}/accounts/${accNum}`);
+        if (!res.ok) throw new Error("Account not found");
+        const data = await res.json();
+        showMessage("viewAccountMsg", `Account: ${data.accountNumber}, Balance: ₹${data.balance}`);
+      } catch {
+        showMessage("viewAccountMsg", "Account not found!", false);
+      }
+    }
+</script>
+</body>
+</html>
