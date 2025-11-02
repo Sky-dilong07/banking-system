@@ -1,17 +1,19 @@
-# Use OpenJDK 21 as base image
-FROM openjdk:21-jdk-slim
+# Use Maven with JDK 17
+FROM maven:3.9.6-eclipse-temurin-17
 
-# Set working directory
 WORKDIR /app
 
-# Copy project files
+# Copy all project files
 COPY . .
 
-# Build the application
+# Grant permission to mvnw
+RUN chmod +x ./mvnw
+
+# Build the app
 RUN ./mvnw clean package -DskipTests
 
 # Expose port 8080
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "target/*.jar"]
+# Run the app
+CMD ["java", "-jar", "target/*.jar"]
