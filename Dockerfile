@@ -12,9 +12,11 @@ RUN chmod +x ./mvnw
 # Build the app
 RUN ./mvnw clean package -DskipTests
 
+# Copy jar to a fixed name
+RUN cp target/*.jar app.jar
+
 # Expose port 8080
 EXPOSE 8080
 
 # Run the app
-RUN cp target/*.jar app.jar
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "app.jar"]
